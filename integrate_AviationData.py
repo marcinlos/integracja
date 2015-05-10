@@ -7,7 +7,7 @@ from datetime import date, time, datetime
 import xml.etree.ElementTree as ET
 import re
 from model import *
-from data_util import add_event, process_data
+from data_util import add_event, process_data, match_country
 from string_utils import unicodize, orNone, intOrNone
 
 
@@ -31,9 +31,12 @@ def process(data, session):
         date = parser.parse(data['EventDate']).date()
         time = None
         airline = data.get('AirCarrier')
-        plane_type = data['Make'] + ' ' + data['Model']
+        manufacturer = data['Make']
+        plane_type = data['Model']
         registration = data['RegistrationNumber']
         country = orNone(data['Country'])
+        if country:
+            country = match_country(country)
         location = orNone(data['Location'])
         weather = parse_weather(data['WeatherCondition'])
         phase = parse_phase(data['BroadPhaseOfFlight'])

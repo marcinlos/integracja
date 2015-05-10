@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from sqlalchemy.orm.exc import NoResultFound
 from dateutil import parser
 from datetime import date, time, datetime
 from model import *
 import re
 
-from data_util import add_event, process_data
-from string_utils import orNone, intOrNone, unicodize
+from data_util import add_event, process_data, match_country, find_manufacturer
+from string_utils import *
 
 '''
 {"Date": "March 31, 2006", "Time": "17:35", "Location": "Rio Bonito, Brazil",
@@ -62,22 +63,24 @@ def parse_route(route):
             return (departure, destination)
     return (None, None)
 
-def clean_string(airline):
-    if airline and airline != '?':
-        return airline.strip()
 
 def parse_location(location):
     if location and location != '?':
-        return None, location
+        location = location.strip()
+        parts = [s.strip() for s in location.split(',')]
+        country, location = parts[-1], u', '.join(parts[:-1])
+        return match_country(country), location
     else:
         return None, None
+
 
 
 def process(data, session):
     date = get_date(data)
     time = get_time(data)
     airline = clean_string(data.get('Operator'))
-    plane_type = clean_string(data.get('AC\n        Type'))
+    type = clean_string(data.get('AC\n        Type'))
+    manufacturer, plane_type = find_manufacturer(type, session)
     registration = orNone(data.get('Registration'))
     number = clean_string(data.get('Flight #'))
 

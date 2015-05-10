@@ -5,15 +5,27 @@ from sqlalchemy.orm import relationship, backref
 
 Base = declarative_base()
 
-class PlaneType(Base):
-    __tablename__ = 'plane_types'
+class PlaneManufacturer(Base):
+    __tablename__ = 'manufacturer'
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode, index=True, unique=True)
     name_lower = Column(Unicode, index=True, unique=True)
 
     def __repr__(self):
-        return 'PlaneType(name = {})'.format(self.name)
+        return 'PlaneManufacturer(name = {})'.format(self.name)
+
+class PlaneType(Base):
+    __tablename__ = 'plane_types'
+
+    id = Column(Integer, primary_key=True)
+    model = Column(Unicode)
+    model_lower = Column(Unicode, index=True)
+    manufacturer_id = Column(Integer, ForeignKey('manufacturer.id'))
+    manufacturer = relationship('PlaneManufacturer')
+
+    def __repr__(self):
+        return 'PlaneType(model = {})'.format(self.model)
 
 class Plane(Base):
     __tablename__ = 'planes'
@@ -47,8 +59,10 @@ class Flight(Base):
     passengers = Column(Integer)
     total = Column(Integer)
     airline_id = Column(Integer, ForeignKey('airlines.id'))
+    plane_id = Column(Integer, ForeignKey('planes.id'))
 
     airline = relationship('Airline', backref='flights')
+    plane = relationship('Plane', backref='flights')
 
     def __repr__(self):
         return 'Flight(number={}, departure={}, destination={}, people={})'\

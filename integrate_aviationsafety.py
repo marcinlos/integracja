@@ -5,7 +5,7 @@ from datetime import date, time, datetime
 from model import *
 import re
 
-from data_util import add_event, process_data
+from data_util import add_event, process_data, match_country, find_manufacturer
 from string_utils import orNone, intOrNone, unicodize
 
 
@@ -17,7 +17,7 @@ def get_date(data):
     except KeyError:
         pass
     except Exception as e:
-        print u'Could not parse date: "{}"'.format(s)
+        print u'Could not parse date: {!r}'.format(s)
         print e
 
 def get_time(data):
@@ -30,7 +30,7 @@ def get_time(data):
     except KeyError:
         pass
     except Exception as e:
-        print u'Could not parse time: "{}"'.format(s)
+        print u'Could not parse time: {!r}'.format(s)
         print e
 
 def parse_people(people):
@@ -65,6 +65,8 @@ def parse_location(location):
             country = orNone(m.group(1))
             if not country or 'unknown' in country.lower():
                 country = None
+            if country:
+                country = match_country(country)
 
             m = re.match(r'^(.+) \(   .*\)$', location)
             place = orNone(m.group(1))
@@ -96,7 +98,8 @@ def process(data, session):
     date = get_date(data)
     time = get_time(data)
     airline = parse_airline(data.get('Operator'))
-    plane_type = orNone(data.get('Type'))
+    type = orNone(data.get('Type'))
+    manufacturer, plane_type = find_manufacturer(type, session)
     registration = orNone(data.get('Registration'))
     number = orNone(data.get('Flightnumber'))
     departure = parse_point(data.get('Departure airport'))
