@@ -5,8 +5,9 @@ from datetime import date, time, datetime
 from model import *
 import re
 
-from data_util import add_event, process_data, match_country, find_manufacturer
-from string_utils import orNone, intOrNone, unicodize
+from data_util import add_event, process_data, match_country, find_manufacturer,\
+    find_event
+from string_utils import orNone, intOrNone, unicodize, clean_string
 
 
 def get_date(data):
@@ -87,10 +88,11 @@ def parse_point(point):
             return point
 
 def parse_airline(airline):
-    if airline:
+    if airline and airline != 'Unknown':
         airline = airline.strip()
         airline = re.sub(r'\([A-Z]+\)$', '', airline)
         airline = re.sub(r'\s*-\s*[A-Z]+$', '', airline)
+        airline = re.sub(r'/.*', '', airline)
         airline = airline.strip()
         return airline
 
@@ -100,7 +102,7 @@ def process(data, session):
     airline = parse_airline(data.get('Operator'))
     type = orNone(data.get('Type'))
     manufacturer, plane_type = find_manufacturer(type, session)
-    registration = orNone(data.get('Registration'))
+    registration = clean_string(data.get('Registration'))
     number = orNone(data.get('Flightnumber'))
     departure = parse_point(data.get('Departure airport'))
     destination = parse_point(data.get('Destination airport'))
@@ -111,7 +113,15 @@ def process(data, session):
     country, location = parse_location(data.get('Location'))
     weather = None
 
-    add_event(**locals())
+    add = True
+    if date is not None:
+        event = find_event(date, registration, session)
+        if event is not None:
+            print 'Duplicate'
+            add = False
+
+    if add:
+        add_event(**locals())
 
 def input_stream():
     with open('../aviation-safety-data') as input:

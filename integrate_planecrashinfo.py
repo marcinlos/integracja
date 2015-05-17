@@ -7,7 +7,8 @@ from datetime import date, time, datetime
 from model import *
 import re
 
-from data_util import add_event, process_data, match_country, find_manufacturer
+from data_util import add_event, process_data, match_country,\
+    find_manufacturer, find_event
 from string_utils import *
 
 '''
@@ -74,14 +75,20 @@ def parse_location(location):
         return None, None
 
 
+def parse_airline(airline):
+    if airline:
+        airline = re.sub(r'/.*', '', airline)
+        airline = re.sub(r'^Military -', '', airline)
+        airline = airline.strip()
+        return airline
 
 def process(data, session):
     date = get_date(data)
     time = get_time(data)
-    airline = clean_string(data.get('Operator'))
+    airline = parse_airline(data.get('Operator'))
     type = clean_string(data.get('AC\n        Type'))
     manufacturer, plane_type = find_manufacturer(type, session)
-    registration = orNone(data.get('Registration'))
+    registration = clean_string(data.get('Registration'))
     number = clean_string(data.get('Flight #'))
 
     departure, destination = parse_route(data.get('Route'))
@@ -92,7 +99,16 @@ def process(data, session):
     phase = None
     weather = None
     country, location = parse_location(data.get('Location'))
-    add_event(**locals())
+
+    add = True
+    if date is not None:
+        event = find_event(date, registration, session)
+        if event is not None:
+            print 'Duplicate'
+            add = False
+
+    if add:
+        add_event(**locals())
 
 
 def input_stream():

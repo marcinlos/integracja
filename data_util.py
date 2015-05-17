@@ -182,3 +182,15 @@ def find_manufacturer(name, session):
 
         return (manufacturer_name, type)
     return (None, None)
+
+def find_event(date, reg, session):
+    try:
+        return session.query(Event)\
+                .filter(Event.date == date)\
+                .join(Event.flight)\
+                .join(Flight.plane)\
+                .filter(Plane.registration_number == reg)\
+                .one()
+    except NoResultFound:
+        pass
+
