@@ -112,6 +112,7 @@ def process(data, session):
     phase = parse_phase(data.get('Phase'))
     country, location = parse_location(data.get('Location'))
     weather = None
+    source = u'aviationsafety.net'
 
     add = True
     if date is not None:

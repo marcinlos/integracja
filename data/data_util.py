@@ -84,7 +84,7 @@ def add_event(session, **p):
             'total', 'crew', 'passengers')
     event_data = dict_subset(p,
             'date', 'time', 'deaths_total', 'deaths_crew', 'deaths_passengers',
-            'weather', 'phase', 'country', 'location')
+            'weather', 'phase', 'country', 'location', 'source')
 
     flight = Flight(airline=airline, plane=plane, **flight_data)
     event = Event(flight=flight, **event_data)
@@ -123,7 +123,10 @@ def match_country(country):
         elif country in Canada.provinces:
             return u'Canada'
         else:
-            return country
+            try:
+                return countries.names[country]
+            except:
+                pass
         return None
 
 def try_find_manufacturer(name, session):

@@ -99,6 +99,7 @@ def process(data, session):
     phase = None
     weather = None
     country, location = parse_location(data.get('Location'))
+    source = u'planecrash.info'
 
     add = True
     if date is not None:

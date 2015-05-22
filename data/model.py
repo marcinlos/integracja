@@ -82,6 +82,7 @@ class Event(Base):
     country = Column(Unicode)
     location = Column(Unicode)
     description = Column(Unicode)
+    source = Column(Unicode)
     flight_id = Column(Integer, ForeignKey('flights.id'))
 
     flight = relationship('Flight', backref='events')

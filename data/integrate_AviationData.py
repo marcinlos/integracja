@@ -49,6 +49,7 @@ def process(data, session):
         departure = None
         destination = None
         number = None
+        source = u'ntsb'
 
         add_event(**locals())
 
