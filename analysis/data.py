@@ -58,6 +58,9 @@ class GroupedData(object):
     def pairs(self):
         return DataSet(self)
 
+    def order_by(self, *args, **kw):
+        return self.pairs().order_by(*args, **kw)
+
     def __getitem__(self, key):
         return self.groups[key]
 
