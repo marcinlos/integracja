@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     filters = [
         flt.exclude_sources('ntsb'),
+        flt.only_lethal
     ]
     rep = r.CountryReport(data, filters=filters)
     rep.show()
