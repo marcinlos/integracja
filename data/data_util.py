@@ -91,43 +91,53 @@ def add_event(session, **p):
 
     session.add_all([flight, event])
 
-def match_country(country):
-        country = re.sub('[Nn]ear ', '', country, flags=re.I)
-        country = re.sub('[Oo]ff', '', country, flags=re.I)
-        country = re.sub('[Oo]ver( the)?', '', country, flags=re.I)
-        country = re.sub(r'\d+', '', country)
-        country = re.sub(r'\(.*\)', '', country)
-        country = country.strip()
-        options = list(countries.names) + list(USA.full_names) + list(USA.shortcuts) + list(Canada.provinces)
 
-        if country not in options:
-            best, d = best_match(country, options)
-            q = d / float(len(country))
-            if q > 0.2:
-                country2 = re.sub(r'(north|south|east|west)(ern)?', '', country, flags=re.I)
-                country2 = re.sub(r'(north|south|east|west)(ern)?', '', country2, flags=re.I)
-                country2 = re.sub(r'central', '', country2, flags=re.I)
-                country2 = re.sub(r'(republic|of|miles|the) ', '', country2, flags=re.I)
-                country2 = re.sub(r'coast', '', country2, flags=re.I)
-                country2 = country2.strip()
-                if country != country2:
-                    country = country2
-                    best, d = best_match(country, options)
-                    q = d / float(len(country))
-            if q <= 0.2:
-                country = best
-            else:
-                print repr(country), '-->', best, '({:2.1%})'.format(q)
-        if country in USA.full_names or country in USA.shortcuts:
-            return u'USA'
-        elif country in Canada.provinces:
-            return u'Canada'
+options = list(countries.names) + list(USA.full_names) + list(USA.shortcuts) + list(Canada.provinces)
+
+def strip_prepositions(country):
+    country = re.sub('[Nn]ear ', '', country, flags=re.I)
+    country = re.sub('[Oo]ff', '', country, flags=re.I)
+    country = re.sub('[Oo]ver( the)?', '', country, flags=re.I)
+    country = re.sub(r'\d+', '', country)
+    country = re.sub(r'\(.*\)', '', country)
+    country = country.strip()
+    return country
+
+def strip_decorators(country):
+    country = re.sub(r'(north|south|east|west)(ern)?', '', country, flags=re.I)
+    country = re.sub(r'(north|south|east|west)(ern)?', '', country, flags=re.I)
+    country = re.sub(r'central', '', country, flags=re.I)
+    country = re.sub(r'(republic|of|miles|the) ', '', country, flags=re.I)
+    country = re.sub(r'coast', '', country, flags=re.I)
+    country = country.strip()
+    return country
+
+def match_country(country):
+    country = strip_prepositions(country)
+
+    if country not in options:
+        best, d = best_match(country, options)
+        q = d / float(len(country))
+        if q > 0.2:
+            country2 = strip_decorators(country)
+            if country != country2:
+                country = country2
+                best, d = best_match(country, options)
+                q = d / float(len(country))
+        if q <= 0.2:
+            country = best
         else:
-            try:
-                return countries.names[country]
-            except:
-                pass
-        return None
+            print repr(country), '-->', best, '({:2.1%})'.format(q)
+    if country in USA.full_names or country in USA.shortcuts:
+        return u'USA'
+    elif country in Canada.provinces:
+        return u'Canada'
+    else:
+        try:
+            return countries.names[country]
+        except:
+            pass
+    return None
 
 def try_find_manufacturer(name, session):
     try:
